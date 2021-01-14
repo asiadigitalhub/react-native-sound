@@ -88,9 +88,6 @@ public class RNSoundModule extends ReactContextBaseJavaModule implements AudioMa
         case "Ring":
           category = AudioManager.STREAM_RING;
           break;
-        case "Alarm":
-          category = AudioManager.STREAM_ALARM;
-          break;
         default:
           Log.e("RNSoundModule", String.format("Unrecognised category %s", module.category));
           break;
@@ -323,15 +320,8 @@ public class RNSoundModule extends ReactContextBaseJavaModule implements AudioMa
 	
   @Override
   public void onCatalystInstanceDestroy() {
-    java.util.Iterator it = this.playerPool.entrySet().iterator();
-    while (it.hasNext()) {
-      Map.Entry entry = (Map.Entry)it.next();
-      MediaPlayer player = (MediaPlayer)entry.getValue();
-      if (player != null) {
-        player.reset();
-        player.release();
-      }
-      it.remove();
+    for (Map.Entry<String, String> entry : this.playerPool.entrySet()) {
+      release(entry.getKey());
     }
   }
 
@@ -348,7 +338,7 @@ public class RNSoundModule extends ReactContextBaseJavaModule implements AudioMa
     try {
       AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
 
-      callback.invoke((float) audioManager.getStreamVolume(AudioManager.STREAM_MUSIC) / audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
+      callback.invoke(NULL, (float) audioManager.getStreamVolume(AudioManager.STREAM_MUSIC) / audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
     } catch (Exception error) {
       WritableMap e = Arguments.createMap();
       e.putInt("code", -1);
